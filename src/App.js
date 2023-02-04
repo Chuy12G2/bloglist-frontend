@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
@@ -9,12 +9,16 @@ import LoginForm from './components/LoginForm'
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
+  const [reRender, setReRender] = useState(true)
+  
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
     )  
   }, [])
+
+  
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser')
@@ -25,6 +29,8 @@ const App = () => {
       blogService.setToken(loggedUser.token)
     }
   }, [])
+
+  const BlogFormRef = useRef()
 
   const handleLogin = async (person) => {
     try{
@@ -53,7 +59,10 @@ const App = () => {
   const handleCreateBlog = async (newObject) => {
     const newBlog = await blogService.create(newObject)
     setBlogs(blogs.concat(newBlog))
+    BlogFormRef.current.changeVisibility()
+    setReRender(!reRender)
   }
+
 
   return (
     <div>
@@ -63,11 +72,11 @@ const App = () => {
                 </Toggler>}
       
       {user &&  <div>
-                  <h3>{user.name} has logged in</h3>
+                  <h2>{user.name} has logged in</h2>
                   <button onClick={handleLogOut}>Log out</button>
-                  <Toggler label={'New note'}>  
+                  <Toggler label={'New note'} ref={BlogFormRef}>  
                     <BlogForm createBlog={handleCreateBlog}/>
-                  </Toggler>
+                  </Toggler> 
                   {blogsRender}
                 </div>
       }

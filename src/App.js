@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import BlogForm from './components/BlogForm'
+import Toggler from './components/Toggler'
+import LoginForm from './components/LoginForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
-  const [likes, setLikes] = useState('')
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -29,133 +26,52 @@ const App = () => {
     }
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async (person) => {
     try{
-    const user = await loginService.login({
-      username, password
-    })
-
+    const user = await loginService.login(person)
     window.localStorage.setItem(
       'loggedUser', JSON.stringify(user) 
     )
 
     blogService.setToken(user.token)
     setUser(user)
-    setPassword('')
-    setUsername('')
     }catch(exception){
       console.log(exception)
     }
   }
 
-  const handleLogOut = () => {
+   const handleLogOut = () => {
     window.localStorage.clear()
-    setUser(null)
-  }
+     setUser(null)
+   }
 
-  const handleCreateBlog = async (event) => {
-    event.preventDefault()
+  const blogsRender = blogs.map(blog => {
+    return( 
+    <Blog blog={blog} key={blog.id}/>)
+  })
 
-    const newBlog = await blogService.create({
-      title,
-      author,
-      url,
-      likes
-    })
-
+  const handleCreateBlog = async (newObject) => {
+    const newBlog = await blogService.create(newObject)
     setBlogs(blogs.concat(newBlog))
   }
 
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <p>Username</p>
-        <input
-        type='text'
-        value={username}
-        name='Username'
-        onChange={({ target }) => setUsername(target.value)}
-        />
-      </div>
-      <div>
-        <p>Password</p>
-        <input
-        type='text'
-        value={password}
-        name='Password'
-        onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type='submit'>login</button>
-    </form>
-  )
-
-  const addNoteForm = () => (
-    <form onSubmit={handleCreateBlog}>
-      <p>Add New Note</p>
-      <div>
-      Title
-      <input
-        type='text'
-        value={title}
-        name='Password'
-        onChange={({ target }) => setTitle(target.value)}
-      />
-      </div>
-      <div>
-      Author
-      <input
-        type='text'
-        value={author}
-        name='Password'
-        onChange={({ target }) => setAuthor(target.value)}
-      />
-      </div>
-      <div>
-      Url
-      <input
-        type='text'
-        value={url}
-        name='Password'
-        onChange={({ target }) => setUrl(target.value)}
-      />
-      </div>
-      <div>
-      Likes
-      <input
-        type='text'
-        value={likes}
-        name='Password'
-        onChange={({ target }) => setLikes(target.value)}
-      />
-      </div>
-      <button type='submit'>Create</button>
-      
-    </form>
-  )
-
-  const renderIfUserIsLogged = () => (
-    <div>
-      <div>
-        <h3>{user.name} has logged in</h3>
-        <button onClick={handleLogOut}>Log out</button>
-      </div>
-      {addNoteForm()}
-      <div>
-        {user && <h2>blogs</h2>}
-        {user && blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} />
-        )}
-      </div>
-    </div>
-
-  )
-
   return (
     <div>
-        {!user && loginForm()}
-        {user && renderIfUserIsLogged()}
+      <h1>Blog List App</h1>
+      {!user && <Toggler label={'Login'}>
+                  <LoginForm login={handleLogin}/>
+                </Toggler>}
+      
+      {user &&  <div>
+                  <h3>{user.name} has logged in</h3>
+                  <button onClick={handleLogOut}>Log out</button>
+                  <Toggler label={'New note'}>  
+                    <BlogForm createBlog={handleCreateBlog}/>
+                  </Toggler>
+                  {blogsRender}
+                </div>
+      }
+      
     </div>
     
   )

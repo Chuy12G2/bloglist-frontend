@@ -16,7 +16,7 @@ const App = () => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
     )  
-  }, [])
+  }, [reRender])
 
   
 
@@ -51,9 +51,28 @@ const App = () => {
      setUser(null)
    }
 
+  const deleteBlog = async (e) => {
+    blogService.remove(e.id)
+    setReRender(!reRender)
+  }
+
+  const updateBlog = async (blog) => {
+    const updatedBlog = {
+      title: blog.title,
+      author: blog.author,
+      url: blog.url,
+      likes: blog.likes + 1,
+      user: blog.user.id
+    }
+
+    await blogService.update(blog.id, updatedBlog)
+
+    setReRender(!reRender)
+  }
+
   const blogsRender = blogs.map(blog => {
     return( 
-    <Blog blog={blog} key={blog.id}/>)
+    <Blog blog={blog} handleDelete={deleteBlog} currentUser={user} handleLike={updateBlog} key={blog.id}/>)
   })
 
   const handleCreateBlog = async (newObject) => {
@@ -63,7 +82,8 @@ const App = () => {
     setReRender(!reRender)
   }
 
-
+  console.log('rendering')
+  
   return (
     <div>
       <h1>Blog List App</h1>

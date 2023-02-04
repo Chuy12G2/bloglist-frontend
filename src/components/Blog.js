@@ -1,6 +1,7 @@
 import { useState } from "react"
 
-const Blog = ({blog}) => {
+const Blog = ({blog, currentUser, handleDelete, handleLike}) => {
+
   const [visible, setVisible] = useState(false)
   const blogStyle = {
     paddingTop: 10,
@@ -12,6 +13,12 @@ const Blog = ({blog}) => {
 
   const toggleVisibility = () => {
     setVisible(!visible)
+  }
+
+  let deleteButton = ''
+
+  if(currentUser.username === blog.user.username){
+    deleteButton = <button onClick={() => handleDelete(blog)}>delete</button>
   }
 
   return(
@@ -29,9 +36,9 @@ const Blog = ({blog}) => {
       <button onClick={toggleVisibility}>Hide</button>
       <p>{blog.url}</p>
       <p style={{display: 'inline', paddingRight: '10px'}}>likes {blog.likes}</p>
-      <button>like</button>
+      <button onClick={() => {handleLike(blog)}}>like</button>
       <p>{blog.user.name}</p>
-      
+      {deleteButton}
     </div>
     }
   </div> 
